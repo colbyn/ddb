@@ -49,13 +49,24 @@ fn init_db() -> DatastoreClient {
     DatastoreClient::new(api_key)
 }
 
-
-fn main() {
-    let db = init_db();
+fn insert_new_todo(db: &DatastoreClient) -> String {
     let item = TodoItem {
         name: random_id_string(),
         title: String::from("lorem ipsum")
     };
+    println!("new todo: {:#?}", item);
     let result = db.upsert(item.clone());
-    println!("result: {:#?}", result);
+    println!("result [insert]: {:#?}", result);
+    item.name
+}
+
+fn get_todo(db: &DatastoreClient, name: &str) {
+    let result = db.get::<TodoItem, _>(name);
+    println!("result [get]: {:#?}", result);
+}
+
+fn main() {
+    let db = init_db();
+    let key = insert_new_todo(&db);
+    get_todo(&db, &key);
 }
