@@ -203,7 +203,7 @@ impl DatastoreClient {
             Err(e) => Err(Error::DatabaseResponse(e))
         }
     }
-    pub fn get<T: DeserializeOwned + EntityKey>(&self, name_key: impl ToString) -> Result<T, Error> {
+    pub fn get<T: DeserializeOwned + EntityKey, K: ToString>(&self, name_key: K) -> Result<T, Error> {
         let kind_key = T::entity_kind_key();
         let req = google_datastore1::LookupRequest {
             keys: Some(vec![
