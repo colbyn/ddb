@@ -239,7 +239,7 @@ impl DatastoreClient {
             Err(e) => Err(Error::DatabaseResponse(e)),
         }
     }
-    pub fn delete<T: EntityKey>(&self, name_key: &dyn ToString) -> Result<(), Error> {
+    pub fn delete<T: EntityKey, K: ToString>(&self, name_key: K) -> Result<(), Error> {
         let kind_key = T::entity_kind_key();
         let name_key = name_key.to_string();
         let entity_key = google_datastore1::Key {
