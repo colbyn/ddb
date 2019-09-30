@@ -61,9 +61,8 @@ fn insert_new_todo(db: &DatastoreClient) -> String {
 }
 
 fn get_todo(db: &DatastoreClient, name: &str) {
-    let result = db
-        .get::<TodoItem, _>(name);
-    //         ^^^^^^^^ The type of the thing we are retrieving
+    let result = db.get::<TodoItem, _>(name);
+    //                    ^^^^^^^^ The type of the thing we are retrieving
     println!("result [get]: {:#?}", result);
 }
 
