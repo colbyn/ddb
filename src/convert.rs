@@ -147,11 +147,10 @@ pub fn from_datastore_value<T: serde::de::DeserializeOwned>(value: google_datast
     } else if let Some(xs) = value.integer_value {
         let as_u64: Option<u64> = FromStr::from_str(&xs).ok();
         let as_i64: Option<i64> = FromStr::from_str(&xs).ok();
-        let number = as_u64
-            .map(|x| x as f64)
-            .or(as_i64.map(|x| x as f64))?;
-        let x = serde_json::Number::from_f64(number)?;
-        serde_value = serde_json::Value::Number(x);
+        let number: serde_json::Number = as_u64
+            .map(|x| From::from(x))
+            .or(as_i64.map(|x| From::from(x)))?;
+        serde_value = serde_json::Value::Number(number);
     } else if let Some(xs) = value.null_value {
         serde_value = serde_json::Value::Null;
     } else {
