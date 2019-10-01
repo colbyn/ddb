@@ -152,16 +152,46 @@ pub fn from_datastore_value<T: serde::de::DeserializeOwned>(value: google_datast
         // serde_value = panic!("ddb from_datastore_value unreachable: {:#?}", value);
         serde_value = serde_json::Value::Object(Default::default());
     }
-    serde_json::from_value(serde_value).ok()
+    serde_json::from_value(serde_value)
+        .map_err(|e| {
+            // eprintln!("error serde_json::from_value: {:#?}", e);
+            e
+        })
+        .ok()
 }
 
 
 pub fn from_datastore_entity<T: serde::de::DeserializeOwned>(value: google_datastore1::Entity) -> Option<T> {
-    let value = google_datastore1::Value {
-        entity_value: Some(value),
-        ..Default::default()
-    };
-    from_datastore_value(value)
+    // let value = google_datastore1::Value {
+    //     entity_value: Some(value),
+    //     ..Default::default()
+    // };
+    // from_datastore_value(value)
+    
+    let mut serde_value: serde_json::Value;
+    let mut any_invalid = false;
+    let xs = value
+        .properties?
+        .into_iter()
+        .filter_map(|(k, v)| {
+            let v = from_datastore_value(v);
+            if v.is_none() {
+                any_invalid = true;
+            }
+            v.map(|v| (k, v))
+        })
+        .collect::<serde_json::Map<_, _>>();
+    if !any_invalid {
+        serde_value = serde_json::Value::Object(xs);
+    } else {
+        return None;
+    }
+    serde_json::from_value(serde_value)
+        .map_err(|e| {
+            eprintln!("error serde_json::from_value: {:#?}", e);
+            e
+        })
+        .ok()
 }
 
 
