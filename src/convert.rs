@@ -93,7 +93,8 @@ pub fn from_datastore_value<T: serde::de::DeserializeOwned>(value: google_datast
     if let Some(xs) = value.entity_value {
         let mut any_invalid = false;
         let xs = xs
-            .properties?
+            .properties
+            .unwrap_or(HashMap::default())
             .into_iter()
             .filter_map(|(k, v)| {
                 let v = from_datastore_value(v);
@@ -129,7 +130,8 @@ pub fn from_datastore_value<T: serde::de::DeserializeOwned>(value: google_datast
     } else if let Some(xs) = value.array_value {
         let mut any_invalid = false;
         let xs = xs
-            .values?
+            .values
+            .unwrap_or(Vec::default())
             .into_iter()
             .filter_map(|x| {
                 let x = from_datastore_value(x);
@@ -162,36 +164,11 @@ pub fn from_datastore_value<T: serde::de::DeserializeOwned>(value: google_datast
 
 
 pub fn from_datastore_entity<T: serde::de::DeserializeOwned>(value: google_datastore1::Entity) -> Option<T> {
-    // let value = google_datastore1::Value {
-    //     entity_value: Some(value),
-    //     ..Default::default()
-    // };
-    // from_datastore_value(value)
-    
-    let mut serde_value: serde_json::Value;
-    let mut any_invalid = false;
-    let xs = value
-        .properties?
-        .into_iter()
-        .filter_map(|(k, v)| {
-            let v = from_datastore_value(v);
-            if v.is_none() {
-                any_invalid = true;
-            }
-            v.map(|v| (k, v))
-        })
-        .collect::<serde_json::Map<_, _>>();
-    if !any_invalid {
-        serde_value = serde_json::Value::Object(xs);
-    } else {
-        return None;
-    }
-    serde_json::from_value(serde_value)
-        .map_err(|e| {
-            eprintln!("error serde_json::from_value: {:#?}", e);
-            e
-        })
-        .ok()
+    let value = google_datastore1::Value {
+        entity_value: Some(value),
+        ..Default::default()
+    };
+    from_datastore_value(value)
 }
 
 
