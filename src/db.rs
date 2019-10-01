@@ -233,7 +233,6 @@ impl DatastoreClient {
                     .ok_or(Error::NoPayload)?;
                 convert::from_datastore_entity(payload.clone())
                     .ok_or_else(|| {
-                        eprintln!("conversion or parser error: {:#?}", payload);
                         Error::Deserialization {
                             msg: String::from("conversion or parser error")
                         }

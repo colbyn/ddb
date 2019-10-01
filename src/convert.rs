@@ -155,11 +155,10 @@ pub fn from_datastore_value<T: serde::de::DeserializeOwned>(value: google_datast
         serde_value = serde_json::Value::Null;
     } else {
         serde_value = panic!("ddb from_datastore_value unreachable: {:#?}", value);
-        // serde_value = serde_json::Value::Object(Default::default());
     }
     serde_json::from_value(serde_value)
         .map_err(|e| {
-            eprintln!("error serde_json::from_value: {:#?}", e);
+            // eprintln!("error serde_json::from_value: {:#?}", e);
             e
         })
         .ok()
