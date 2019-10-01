@@ -231,9 +231,12 @@ impl DatastoreClient {
                     })
                     .and_then(|x| x.entity)
                     .ok_or(Error::NoPayload)?;
-                convert::from_datastore_entity(payload)
-                    .ok_or(Error::Deserialization {
-                        msg: String::from("conversion or parser error")
+                convert::from_datastore_entity(payload.clone())
+                    .ok_or_else(|| {
+                        eprintln!("conversion or parser error: {:#?}", payload);
+                        Error::Deserialization {
+                            msg: String::from("conversion or parser error")
+                        }
                     })
             }
             Err(e) => Err(Error::DatabaseResponse(e)),
