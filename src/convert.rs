@@ -145,14 +145,18 @@ pub fn from_datastore_value<T: serde::de::DeserializeOwned>(value: google_datast
             return None;
         }
     } else if let Some(xs) = value.integer_value {
-        let x: f64 = FromStr::from_str(&xs).ok()?;
-        let x = serde_json::Number::from_f64(x)?;
+        let as_u64: Option<u64> = FromStr::from_str(&xs).ok();
+        let as_i64: Option<i64> = FromStr::from_str(&xs).ok();
+        let number = as_u64
+            .map(|x| x as f64)
+            .or(as_i64.map(|x| x as f64))?;
+        let x = serde_json::Number::from_f64(number)?;
         serde_value = serde_json::Value::Number(x);
     } else if let Some(xs) = value.null_value {
         serde_value = serde_json::Value::Null;
     } else {
-        // serde_value = panic!("ddb from_datastore_value unreachable: {:#?}", value);
-        serde_value = serde_json::Value::Object(Default::default());
+        serde_value = panic!("ddb from_datastore_value unreachable: {:#?}", value);
+        // serde_value = serde_json::Value::Object(Default::default());
     }
     serde_json::from_value(serde_value)
         .map_err(|e| {
