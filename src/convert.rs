@@ -33,7 +33,7 @@ pub fn to_datastore_value<T: Serialize>(x: T) -> Option<google_datastore1::Value
                     ..google_datastore1::Value::default()
                 })
             } else {
-                panic!("unreachable")
+                panic!("ddb from_datastore_value unreachable");
             }
         }
         serde_json::Value::String(x) => {
@@ -149,7 +149,7 @@ pub fn from_datastore_value<T: serde::de::DeserializeOwned>(value: google_datast
     } else if let Some(xs) = value.null_value {
         serde_value = serde_json::Value::Null;
     } else {
-        serde_value = panic!("unreachable");
+        serde_value = panic!("ddb from_datastore_value unreachable: {:#?}", value);
     }
     serde_json::from_value(serde_value).ok()
 }
