@@ -6,7 +6,7 @@ pub fn to_datastore_value<T: Serialize>(x: T) -> Option<google_datastore1::Value
     match serde_json::to_value(x).ok()? {
         serde_json::Value::Null => {
             Some(google_datastore1::Value {
-                null_value: Some(String::new()),
+                null_value: Some(String::from("NULL_VALUE")),
                 ..google_datastore1::Value::default()
             })
         }
