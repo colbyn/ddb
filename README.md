@@ -2,12 +2,13 @@
 > Googles Cloud Firestore in <b>Datastore mode</b> - High Level Rust API (with serde support!)
 
 ```rust
+// MODEL
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TodoItem {
     pub name: String,
     pub title: String,
 }
-
+// MODEL METADATA
 impl EntityKey for TodoItem {
     fn entity_kind_key() -> String {
         String::from("TodoItem")
@@ -16,10 +17,12 @@ impl EntityKey for TodoItem {
         self.name.clone()
     }
 }
+// SETUP
 let item = TodoItem {
     name: String::from("test"),
     title: String::from("lorem ipsum")
 };
+// GO!
 DatastoreClient::new(ApiKey::lookup().unwrap())
     .upsert(item);
 ```
