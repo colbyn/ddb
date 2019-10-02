@@ -1,6 +1,9 @@
 # Datastore DB
 > Googles Cloud Firestore in <b>Datastore mode</b> - High Level Rust API (with serde support!)
 
+
+## API Preview
+
 ```rust
 // MODEL
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
