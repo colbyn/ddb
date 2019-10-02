@@ -17,14 +17,14 @@ impl EntityKey for TodoItem {
         self.name.clone()
     }
 }
-// SETUP
+// INIT
+let db = DatastoreClient::new(ApiKey::lookup().unwrap());
 let item = TodoItem {
     name: String::from("test"),
     title: String::from("lorem ipsum")
 };
 // GO!
-DatastoreClient::new(ApiKey::lookup().unwrap())
-    .upsert(item);
+db.upsert(item);
 ```
 
 
