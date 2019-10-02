@@ -48,9 +48,20 @@ pub struct ApiKey {
 
 impl ApiKey {
     pub fn lookup() -> Option<Self> {
-        let file_path = lookup_api_key_file_path()?;
-        let project_id = lookup_project_id(None)?;
-        Some(ApiKey {file_path, project_id})
+        let via_std_file_path = || {
+            let file_path = lookup_api_key_file_path()?;
+            let project_id = lookup_project_id(None)?;
+            Some(ApiKey {file_path, project_id})            
+        };
+        let via_env_var = || {
+            std::env::var("GOOGLE_APPLICATION_CREDENTIALS")
+                .ok()
+                .and_then(|auth_file_path| {
+                    ApiKey::from_file(&PathBuf::from(auth_file_path))
+                })
+        };
+        via_std_file_path()
+            .or(via_env_var())
     }
     pub fn from_file(file_path: &PathBuf) -> Option<Self> {
         let file_path = file_path.clone();
