@@ -6,7 +6,7 @@ use std::string::ToString;
 use serde::{Serialize, Deserialize, de::DeserializeOwned};
 use crate::convert;
 
-pub use crate::api_key::ApiKey;
+pub use crate::auth::ApiKey;
 
 ///////////////////////////////////////////////////////////////////////////////
 // HELPERS
@@ -31,11 +31,12 @@ pub enum Error {
 }
 
 
+
 ///////////////////////////////////////////////////////////////////////////////
 // CLIENT
 ///////////////////////////////////////////////////////////////////////////////
 
-type Handle = google_datastore1::Datastore<hyper::Client, yup_oauth2::ServiceAccountAccess<hyper::Client>>;
+type Handle = google_datastore1::Datastore<hyper::Client, crate::auth::AuthTokenProxy>;
 
 #[derive(Clone)]
 pub struct DatastoreClient {
@@ -44,7 +45,7 @@ pub struct DatastoreClient {
 }
 
 impl DatastoreClient {
-    pub fn new(auth: crate::api_key::ApiKey) -> Self {
+    pub fn new(auth: crate::auth::ApiKey) -> Self {
         let project_id = auth.project_id.clone();
         let key_file = auth.file_path
             .to_str()
@@ -58,12 +59,25 @@ impl DatastoreClient {
         let client = hyper::Client::with_connector(
             hyper::net::HttpsConnector::new(hyper_rustls::TlsClient::new())
         );
-        let hub = google_datastore1::Datastore::new(client, access);
+        let hub = google_datastore1::Datastore::new(client, crate::auth::AuthTokenProxy::YupOAuth(access));
         let hub = Rc::new(hub);
         DatastoreClient {
             handle: hub,
             project_id
         }
+    }
+    pub fn new_in_gcp(project_id: &str) -> Result<Self, String> {
+        let project_id = project_id.to_owned();
+        let client = hyper::Client::with_connector(
+            hyper::net::HttpsConnector::new(hyper_rustls::TlsClient::new())
+        );
+        let access = crate::auth::gcp::GcpAuthToken::new()?;
+        let hub = google_datastore1::Datastore::new(client, crate::auth::AuthTokenProxy::Gcp(access));
+        let hub = Rc::new(hub);
+        Ok(DatastoreClient {
+            handle: hub,
+            project_id
+        })
     }
     pub fn insert<T: Serialize + EntityKey>(&self, value: T) -> Result<(), Error> {
         let kind_key = T::entity_kind_key();

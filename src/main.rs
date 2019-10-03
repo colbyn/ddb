@@ -2,7 +2,7 @@
 
 mod convert;
 mod db;
-mod api_key;
+mod auth;
 
 use serde::{Serialize, Deserialize};
 pub use db::*;
