@@ -5,8 +5,8 @@ use serde::{Serialize, Deserialize, de::DeserializeOwned};
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct GcpAuthToken {
     access_token: String,
-    expires_in: String,
     token_type: String,
+    expires_in: u32,
 }
 
 impl yup_oauth2::GetToken for GcpAuthToken {
