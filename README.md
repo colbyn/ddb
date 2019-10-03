@@ -21,7 +21,7 @@ impl EntityKey for TodoItem {
     }
 }
 // INIT
-let db = DatastoreClient::new(ApiKey::lookup().unwrap());
+let db = DatastoreClient::new().unwrap();
 let item = TodoItem {
     name: String::from("test"),
     title: String::from("lorem ipsum")

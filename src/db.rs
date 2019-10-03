@@ -5,8 +5,9 @@ use std::path::PathBuf;
 use std::string::ToString;
 use serde::{Serialize, Deserialize, de::DeserializeOwned};
 use crate::convert;
+use crate::auth;
 
-pub use crate::auth::ApiKey;
+pub use crate::auth::Auth;
 
 ///////////////////////////////////////////////////////////////////////////////
 // HELPERS
@@ -36,7 +37,7 @@ pub enum Error {
 // CLIENT
 ///////////////////////////////////////////////////////////////////////////////
 
-type Handle = google_datastore1::Datastore<hyper::Client, crate::auth::AuthTokenProxy>;
+type Handle = google_datastore1::Datastore<hyper::Client, auth::Auth>;
 
 #[derive(Clone)]
 pub struct DatastoreClient {
@@ -45,38 +46,21 @@ pub struct DatastoreClient {
 }
 
 impl DatastoreClient {
-    pub fn new(auth: crate::auth::ApiKey) -> Self {
-        let project_id = auth.project_id.clone();
-        let key_file = auth.file_path
-            .to_str()
-            .expect("auth.file_path.to_str() failed");
-        let client_secret = yup_oauth2::service_account_key_from_file(&key_file.to_owned())
-            .expect("yup_oauth2::service_account_key_from_file failed");
-        let client = hyper::Client::with_connector(
-            hyper::net::HttpsConnector::new(hyper_rustls::TlsClient::new())
-        );
-        let access = yup_oauth2::ServiceAccountAccess::new(client_secret, client);
-        let client = hyper::Client::with_connector(
-            hyper::net::HttpsConnector::new(hyper_rustls::TlsClient::new())
-        );
-        let hub = google_datastore1::Datastore::new(client, crate::auth::AuthTokenProxy::YupOAuth(access));
-        let hub = Rc::new(hub);
-        DatastoreClient {
-            handle: hub,
-            project_id
-        }
+    /// Automatically finds auth credentials.
+    /// See `Auth::new()` for auth related details.
+    pub fn new() -> Result<Self, String> {
+        let auth = Auth::new()?;
+        DatastoreClient::new_with_auth(auth)
     }
-    pub fn new_in_gcp(project_id: &str) -> Result<Self, String> {
-        let project_id = project_id.to_owned();
+    pub fn new_with_auth(auth: Auth) -> Result<Self, String> {
+        let project_id = auth.project_id.clone();
         let client = hyper::Client::with_connector(
             hyper::net::HttpsConnector::new(hyper_rustls::TlsClient::new())
         );
-        let access = crate::auth::gcp::GcpAuthToken::new()?;
-        let hub = google_datastore1::Datastore::new(client, crate::auth::AuthTokenProxy::Gcp(access));
-        let hub = Rc::new(hub);
+        let hub = google_datastore1::Datastore::new(client, auth);
         Ok(DatastoreClient {
-            handle: hub,
-            project_id
+            handle: Rc::new(hub),
+            project_id,
         })
     }
     pub fn insert<T: Serialize + EntityKey>(&self, value: T) -> Result<(), Error> {

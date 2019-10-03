@@ -45,8 +45,8 @@ impl EntityKey for TodoItem {
 ///////////////////////////////////////////////////////////////////////////////
 
 fn init_db() -> DatastoreClient {
-    let api_key = ApiKey::lookup().expect("ApiKey::lookup failed");
-    DatastoreClient::new(api_key)
+    DatastoreClient::new()
+        .expect("DatastoreClient init failed (probably could not find auth credentials)")
 }
 
 fn insert_new_todo(db: &DatastoreClient) -> String {
